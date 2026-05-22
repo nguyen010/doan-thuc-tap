@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "PowerShell(Start-Process \"http://localhost:3001\")",
+      "PowerShell(Get-ChildItem \"D:\\\\claude.ai\\\\đồ án TT neh\\\\\" -Recurse -Depth 2 | Where-Object { $_.PSIsContainer -and $_.Name -notmatch \"node_modules|\\\\.next|\\\\.git\" } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem \"D:\\\\claude.ai\\\\đồ án TT neh\\\\\" -Depth 1 | Where-Object { -not $_.PSIsContainer -or $_.Name -notmatch \"node_modules|\\\\.next|\\\\.git|next-event-portal|super-admin-nextjs|suppep admin|\\\\.claude\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem \"D:\\\\claude.ai\\\\đồ án TT neh\\\\next-event-portal\\\\src\" -Recurse -Depth 3 | Where-Object { -not $_.PSIsContainer -and $_.Name -notmatch \"node_modules\" } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem \"D:\\\\claude.ai\\\\đồ án TT neh\\\\super-admin-nextjs\\\\src\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem -Recurse \"D:\\\\claude.ai\\\\đồ án TT neh\\\\super-admin-nextjs\\\\src\" -File | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object -ExpandProperty FullName | Select-Object -First 60)",
+      "Bash(Get-ChildItem -Recurse -Name \"*.tsx\" \"D:\\\\claude.ai\\\\đồ án TT neh\\\\super-admin-nextjs\\\\src\\\\app\")",
+      "Bash(Sort-Object)",
+      "Bash(docker-compose up *)",
+      "Bash(Get-Item \"D:\\\\claude.ai\\\\đồ án TT neh\\\\.env\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name)",
+      "PowerShell(head *)",
+      "PowerShell(docker-compose *)",
+      "PowerShell(docker exec super_admin_nextjs *)",
+      "Bash(docker exec super_admin_nextjs *)",
+      "PowerShell(git -C \"d:\\\\claude.ai\\\\d? �n TT neh\" status 2>&1)",
+      "PowerShell(git -C \"d:\\\\claude.ai\\\\d? �n TT neh\" checkout -b frontend 2>&1)"
+    ]
+  }
+}
