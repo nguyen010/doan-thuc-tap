@@ -69,18 +69,21 @@ export default function UsersPage() {
 
   const handleCreateUser = async () => {
     if (!newUser.email || !newUser.fullname) return toast.error("Vui lòng điền đủ thông tin")
+    const pwd = newUser.password || "password123"
+    if (pwd.length < 6) return toast.error("Mật khẩu phải có ít nhất 6 ký tự")
     try {
       await createUser.mutateAsync({
         username: newUser.fullname,
         email: newUser.email,
-        password: newUser.password || "password123",
+        password: pwd,
         role: newUser.role || "Student",
       })
       setIsCreateDialogOpen(false)
       setNewUser({ fullname: "", email: "", password: "", role: "" })
       toast.success("Đã tạo thành viên mới!")
-    } catch {
-      toast.error("Tạo thành viên thất bại")
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg ? `Lỗi: ${msg}` : "Tạo thành viên thất bại")
     }
   }
 

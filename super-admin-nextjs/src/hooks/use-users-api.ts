@@ -19,13 +19,13 @@ const ROLE_MAP_REVERSE: Record<string, string> = {
   Student: 'STUDENT',
 }
 
-function toUiUser(u: any): User {
+function toUiUser(u: Record<string, unknown>): User {
   return {
-    id: u.id,
-    name: u.username || u.name || u.email,
-    email: u.email,
-    role: (ROLE_MAP[u.role] ?? u.role) as UserRole,
-    status: u.active !== false ? 'HOẠT ĐỘNG' : 'KHOÁ',
+    id: u.id as string,
+    name: (u.username || u.name || u.email) as string,
+    email: u.email as string,
+    role: (ROLE_MAP[u.role as string] ?? u.role) as UserRole,
+    status: (u.isActive ?? u.active) !== false ? 'HOẠT ĐỘNG' : 'KHOÁ',
   }
 }
 
@@ -35,7 +35,7 @@ export function useUsersQuery(search?: string) {
     queryFn: async () => {
       try {
         const data = await userService.getAll({ search, limit: 200 })
-        const list: any[] = Array.isArray(data) ? data : (data?.data ?? data?.items ?? [])
+        const list: Record<string, unknown>[] = Array.isArray(data) ? data : (data?.data ?? data?.items ?? [])
         return list.map(toUiUser) as User[]
       } catch {
         return MOCK_USERS as User[]
@@ -56,11 +56,17 @@ export function useCreateUserMutation() {
 export function useUpdateUserMutation() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: { username?: string; email?: string; role?: string } }) =>
-      userService.update(id, {
-        ...payload,
-        ...(payload.role ? { role: ROLE_MAP_REVERSE[payload.role] ?? payload.role } : {}),
-      }),
+    mutationFn: async ({ id, payload }: { id: string; payload: { username?: string; email?: string; role?: string } }) => {
+      const profilePayload: { username?: string; email?: string } = {}
+      if (payload.username) profilePayload.username = payload.username
+      if (payload.email) profilePayload.email = payload.email
+      if (Object.keys(profilePayload).length > 0) {
+        await userService.update(id, profilePayload)
+      }
+      if (payload.role) {
+        await userService.changeRole(id, ROLE_MAP_REVERSE[payload.role] ?? payload.role)
+      }
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   })
 }

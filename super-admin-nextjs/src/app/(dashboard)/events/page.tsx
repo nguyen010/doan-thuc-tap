@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, ExternalLink, Filter, ImagePlus, Check, Eye, Calendar, MapPin } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Edit, Trash2, ExternalLink, Filter, ImagePlus, Check, Eye, Calendar, MapPin, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -30,6 +31,7 @@ import {
   useUpdateEventMutation,
   useDeleteEventMutation,
 } from "@/hooks/use-events-api"
+import { uploadService } from "@/services/upload.service"
 
 const container = {
   hidden: { opacity: 0 },
@@ -42,8 +44,11 @@ const item = {
 
 export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [eventDisplayMode, setEventDisplayMode] = useState("SỰ KIỆN NỔI BẬT")
+  const [eventDisplayMode, setEventDisplayMode] = useState<'HERO' | 'FEATURED' | 'HIGHLIGHT' | 'NORMAL'>("FEATURED")
+  const [eventCategory, setEventCategory] = useState("ACADEMIC")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -59,22 +64,30 @@ export default function EventsPage() {
     event.location.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const handleImageFile = async (file: File) => {
+    setImagePreview(URL.createObjectURL(file))
+    setIsUploading(true)
+    try {
+      const url = await uploadService.uploadImage(file)
+      setUploadedImageUrl(url)
+    } catch {
+      toast.error("Lỗi upload ảnh — ảnh sẽ không được lưu")
+      setUploadedImageUrl(null)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
-      setImagePreview(url)
-    }
+    if (file) handleImageFile(file)
   }
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault() }
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     const file = e.dataTransfer.files?.[0]
-    if (file && file.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file)
-      setImagePreview(url)
-    }
+    if (file && file.type.startsWith('image/')) handleImageFile(file)
   }
 
   const handleOpenEdit = (event: typeof events[0]) => {
@@ -96,6 +109,9 @@ export default function EventsPage() {
       capacity: String(event.capacity),
     })
     setImagePreview(event.imageUrl || null)
+    setUploadedImageUrl(event.imageUrl || null)
+    setEventDisplayMode((event.displayCategory as 'HERO' | 'FEATURED' | 'HIGHLIGHT' | 'NORMAL') || 'FEATURED')
+    setEventCategory(event.eventCategory || 'ACADEMIC')
     setIsCreateOpen(true)
   }
 
@@ -111,7 +127,10 @@ export default function EventsPage() {
   const resetForm = () => {
     setNewEvent({ title: "", description: "", location: "", date: "", endDate: "", time: "", capacity: "200" })
     setImagePreview(null)
+    setUploadedImageUrl(null)
     setEditingId(null)
+    setEventDisplayMode('FEATURED')
+    setEventCategory('ACADEMIC')
     setIsCreateOpen(false)
   }
 
@@ -132,6 +151,9 @@ export default function EventsPage() {
       startDate,
       endDate,
       maxParticipants: parseInt(newEvent.capacity) || 200,
+      displayCategory: eventDisplayMode,
+      eventCategory: eventCategory,
+      ...(uploadedImageUrl ? { imageUrl: uploadedImageUrl } : {}),
     }
 
     try {
@@ -251,19 +273,46 @@ export default function EventsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">MỤC HIỂN THỊ</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
+                    <Home className="inline w-3 h-3 mr-1 mb-0.5" />
+                    HIỂN THỊ TRÊN HOMEPAGE
+                  </Label>
                   <div className="border border-slate-100 rounded-xl overflow-hidden divide-y divide-slate-100">
-                    {["SỰ KIỆN NỔI BẬT", "DANH MỤC SỰ KIỆN", "SỰ KIỆN ĐƯỢC ĐỀ XUẤT"].map((mode) => (
-                      <button key={mode} type="button" onClick={() => setEventDisplayMode(mode)} className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-bold transition-colors ${eventDisplayMode === mode ? "bg-slate-50 text-indigo-600" : "bg-white text-slate-600 hover:bg-slate-50"}`}>
-                        {mode}
-                        {eventDisplayMode === mode && <Check className="w-3 h-3 text-indigo-600" />}
+                    {[
+                      { value: 'FEATURED', label: 'SỰ KIỆN NỔI BẬT' },
+                      { value: 'HIGHLIGHT', label: 'DANH MỤC SỰ KIỆN' },
+                      { value: 'HERO', label: 'ẢNH NỀN TRANG CHỦ (HERO)' },
+                      { value: 'NORMAL', label: 'BÌNH THƯỜNG (ẨN)' },
+                    ].map(({ value, label }) => (
+                      <button key={value} type="button" onClick={() => setEventDisplayMode(value as typeof eventDisplayMode)} className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-bold transition-colors ${eventDisplayMode === value ? "bg-slate-50 text-indigo-600" : "bg-white text-slate-600 hover:bg-slate-50"}`}>
+                        {label}
+                        {eventDisplayMode === value && <Check className="w-3 h-3 text-indigo-600" />}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">NHÃN THỂ LOẠI</Label>
-                  <Input placeholder="HỘI THẢO" className="h-12 bg-slate-50 border-none rounded-xl" />
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">THỂ LOẠI SỰ KIỆN</Label>
+                  <Select value={eventCategory} onValueChange={setEventCategory}>
+                    <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl text-[11px] font-bold">
+                      <SelectValue placeholder="Chọn thể loại" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        { value: 'ACADEMIC', label: 'Học thuật' },
+                        { value: 'CULTURE', label: 'Văn hóa' },
+                        { value: 'SPORT', label: 'Thể thao' },
+                        { value: 'COMMUNITY', label: 'Cộng đồng' },
+                        { value: 'NATIONAL', label: 'Quốc gia' },
+                        { value: 'SCHOOL', label: 'Trường' },
+                        { value: 'SEMINAR', label: 'Hội thảo' },
+                      ].map(({ value, label }) => (
+                        <SelectItem key={value} value={value} className="text-[11px] font-bold">
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -271,11 +320,11 @@ export default function EventsPage() {
             <div className="p-6 sm:p-8 pt-0 mt-auto">
               <Button
                 onClick={handleCreateEvent}
-                disabled={createEvent.isPending || updateEvent.isPending}
+                disabled={createEvent.isPending || updateEvent.isPending || isUploading}
                 type="button"
                 className="w-full h-12 sm:h-14 bg-slate-900 hover:bg-slate-800 text-white font-black italic uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-slate-200 text-xs sm:text-sm active:scale-95"
               >
-                {(createEvent.isPending || updateEvent.isPending) ? "Đang lưu..." : editingId ? "LƯU THAY ĐỔI" : "XÁC NHẬN & XUẤT BẢN SỰ KIỆN"}
+                {isUploading ? "Đang upload ảnh..." : (createEvent.isPending || updateEvent.isPending) ? "Đang lưu..." : editingId ? "LƯU THAY ĐỔI" : "XÁC NHẬN & XUẤT BẢN SỰ KIỆN"}
               </Button>
             </div>
           </DialogContent>

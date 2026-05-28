@@ -41,15 +41,15 @@ const item = {
 
 export default function ReportsPage() {
   const [isMounted, setIsMounted] = useState(false)
-  const { data: stats = { totalUsers: 0, totalEvents: 0, activeEvents: 0, checkInRate: 0 } } = useOverviewStats()
+  const { data: stats = { totalUsers: 0, totalEvents: 0, totalCheckins: 0, checkInRate: 0, totalRegistrations: 0 } } = useOverviewStats()
 
   useEffect(() => { setIsMounted(true) }, [])
 
   const metrics = [
-    { label: "Tổng người dùng", value: stats.totalUsers.toLocaleString(), change: "+12%", icon: Users, color: "text-indigo-500" },
-    { label: "Tổng sự kiện", value: String(stats.totalEvents), change: "+5.2%", icon: BarChart3, color: "text-cyan-500" },
-    { label: "Sự kiện hoạt động", value: String(stats.activeEvents), change: "+8%", icon: Activity, color: "text-rose-500" },
-    { label: "Tỷ lệ điểm danh TB", value: `${stats.checkInRate}%`, change: "+0.4%", icon: TrendingUp, color: "text-emerald-500" },
+    { label: "Tổng sinh viên", value: stats.totalUsers.toLocaleString(), change: "", icon: Users, color: "text-indigo-500" },
+    { label: "Tổng sự kiện", value: String(stats.totalEvents), change: "", icon: BarChart3, color: "text-cyan-500" },
+    { label: "Tổng lượt điểm danh", value: String(stats.totalCheckins), change: "", icon: Activity, color: "text-rose-500" },
+    { label: "Tỷ lệ điểm danh TB", value: `${stats.checkInRate}%`, change: "", icon: TrendingUp, color: "text-emerald-500" },
   ]
 
   const handleDownloadReport = () => {
@@ -57,9 +57,9 @@ export default function ReportsPage() {
     let content = `BÁO CÁO HIỆU QUẢ SỰ KIỆN - ${reportDate}\n`
     content += `==========================================\n\n`
     content += `1. CHỈ SỐ HIỆU SUẤT\n-------------------\n`
-    content += `- Tổng người dùng: ${stats.totalUsers.toLocaleString()}\n`
+    content += `- Tổng sinh viên: ${stats.totalUsers.toLocaleString()}\n`
     content += `- Tổng sự kiện: ${stats.totalEvents}\n`
-    content += `- Sự kiện đang hoạt động: ${stats.activeEvents}\n`
+    content += `- Tổng lượt điểm danh: ${stats.totalCheckins}\n`
     content += `- Tỷ lệ điểm danh trung bình: ${stats.checkInRate}%\n\n`
     content += `2. THEO DÕI ĐIỂM DANH (7 NGÀY QUA)\n---------------------------------\n`
     attendanceData.forEach(d => { content += `${d.name}: Có mặt: ${d.present} | Vắng: ${d.absent}\n` })

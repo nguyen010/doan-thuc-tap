@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Calendar, MapPin, CheckCircle2, Search } from "lucide-react"
+import { ArrowLeft, Calendar, MapPin, CheckCircle2, Search, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,12 +11,33 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useEventQuery } from "@/hooks/use-events-api"
 import { useEventRegistrations } from "@/hooks/use-registrations-api"
+import { apiClient } from "@/lib/api-client"
 
 export default function EventDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
   const [search, setSearch] = useState("")
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const res = await apiClient.get(`/events/${id}/export`, { responseType: 'blob' })
+      const url = URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `Event_${id}_Participants.xlsx`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch {
+      alert('Xuất file thất bại. Vui lòng thử lại.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const { data: event, isLoading: loadingEvent } = useEventQuery(id)
   const { data: registrations = [], isLoading: loadingRegs } = useEventRegistrations(id)
@@ -107,9 +128,21 @@ export default function EventDetailsPage() {
             <CardTitle className="text-lg sm:text-xl">Danh sách người tham gia</CardTitle>
             <CardDescription className="text-xs sm:text-sm">Hiển thị tất cả những người đã đăng ký.</CardDescription>
           </div>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input className="pl-9 h-9 text-sm" placeholder="Tìm kiếm MSSV hoặc tên..." value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input className="pl-9 h-9 text-sm" placeholder="Tìm kiếm MSSV hoặc tên..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="h-9 px-3 shrink-0 border-slate-200 text-slate-600 hover:bg-slate-50"
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              {isExporting ? 'Đang xuất...' : 'Excel'}
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="px-0 sm:px-6">

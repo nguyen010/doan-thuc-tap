@@ -14,8 +14,8 @@ import { motion, AnimatePresence } from "motion/react"
 import { Logo } from "@/components/ui/logo"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("superadmin1@school.edu")
-  const [password, setPassword] = useState("super123")
+  const [email, setEmail] = useState("voly@university.edu.vn")
+  const [password, setPassword] = useState("password123")
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)

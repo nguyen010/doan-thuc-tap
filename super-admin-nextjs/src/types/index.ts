@@ -20,6 +20,8 @@ export interface Event {
   capacity: number;
   registeredCount: number;
   imageUrl?: string;
+  displayCategory?: 'HERO' | 'FEATURED' | 'HIGHLIGHT' | 'NORMAL';
+  eventCategory?: string;
 }
 
 export interface Registration {
@@ -39,4 +41,6 @@ export interface DashboardStats {
   totalRegistrations: number;
   totalUsers: number;
   checkInRate: number;
+  activeEvents: number;
+  totalCheckins: number;
 }

@@ -5,8 +5,8 @@ export const registrationService = {
     const { data } = await apiClient.post(`/registrations/events/${eventId}/register`)
     return data
   },
-  checkin: async (eventId: string, payload?: Record<string, unknown>) => {
-    const { data } = await apiClient.post(`/registrations/events/${eventId}/checkin`, payload)
+  checkin: async (eventId: string, qrData: string) => {
+    const { data } = await apiClient.post(`/registrations/events/${eventId}/checkin`, { qrData })
     return data
   },
   manualCheckin: async (eventId: string, payload: Record<string, unknown>) => {

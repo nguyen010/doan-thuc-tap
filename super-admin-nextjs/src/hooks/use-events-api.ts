@@ -5,29 +5,29 @@ import { eventService, CreateEventPayload } from '@/services/event.service'
 import { MOCK_EVENTS } from '@/lib/mock-data'
 
 const API_STATUS_MAP: Record<string, 'SẮP DIỄN RA' | 'ĐANG DIỄN RA' | 'ĐÃ KẾT THÚC' | 'ĐÃ HỦY'> = {
-  OPEN: 'SẮP DIỄN RA',
-  PUBLISHED: 'SẮP DIỄN RA',
+  DRAFT: 'SẮP DIỄN RA',
   UPCOMING: 'SẮP DIỄN RA',
+  OPEN: 'SẮP DIỄN RA',
   ONGOING: 'ĐANG DIỄN RA',
-  IN_PROGRESS: 'ĐANG DIỄN RA',
   CLOSED: 'ĐÃ KẾT THÚC',
-  COMPLETED: 'ĐÃ KẾT THÚC',
   CANCELLED: 'ĐÃ HỦY',
 }
 
-function toUiEvent(e: any) {
+function toUiEvent(e: Record<string, unknown>) {
   return {
     id: String(e.id),
-    title: e.title ?? '',
-    description: e.description ?? '',
-    location: e.location ?? '',
-    date: e.startDate ? new Date(e.startDate).toLocaleDateString('vi-VN') : '',
-    status: (API_STATUS_MAP[e.status] ?? 'SẮP DIỄN RA') as 'SẮP DIỄN RA' | 'ĐANG DIỄN RA' | 'ĐÃ KẾT THÚC' | 'ĐÃ HỦY',
-    imageUrl: e.banner || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop',
-    capacity: e.maxParticipants ?? 0,
-    registeredCount: e.registrationCount ?? e.registered ?? 0,
-    startDate: e.startDate ?? '',
-    endDate: e.endDate ?? '',
+    title: (e.title as string) ?? '',
+    description: (e.description as string) ?? '',
+    location: (e.location as string) ?? '',
+    date: e.startDate ? new Date(e.startDate as string).toLocaleDateString('vi-VN') : '',
+    status: (API_STATUS_MAP[e.status as string] ?? 'SẮP DIỄN RA') as 'SẮP DIỄN RA' | 'ĐANG DIỄN RA' | 'ĐÃ KẾT THÚC' | 'ĐÃ HỦY',
+    imageUrl: (e.imageUrl as string) || (e.bannerUrl as string) || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop',
+    capacity: (e.maxParticipants as number) ?? 0,
+    registeredCount: (e.registrationCount as number) ?? (e.registeredCount as number) ?? (e.registered as number) ?? 0,
+    startDate: (e.startDate as string) ?? '',
+    endDate: (e.endDate as string) ?? '',
+    displayCategory: (e.displayCategory as 'HERO' | 'FEATURED' | 'HIGHLIGHT' | 'NORMAL') ?? 'NORMAL',
+    eventCategory: (e.eventCategory as string) ?? '',
   }
 }
 
@@ -37,7 +37,7 @@ export function useEventsQuery() {
     queryFn: async () => {
       try {
         const data = await eventService.getAll()
-        const list: any[] = Array.isArray(data) ? data : (data?.data ?? data?.items ?? [])
+        const list: Record<string, unknown>[] = Array.isArray(data) ? data : (data?.data ?? data?.items ?? [])
         return list.map(toUiEvent)
       } catch {
         return MOCK_EVENTS

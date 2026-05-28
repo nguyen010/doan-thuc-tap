@@ -41,7 +41,7 @@ export default function CheckInPage() {
     }
     if (!selectedEventId) return
     checkinMutation.mutate(
-      { eventId: selectedEventId, payload: { studentId: reg.studentId } },
+      { eventId: selectedEventId, payload: { email: reg.userEmail } },
       {
         onSuccess: () => toast.success(`Đã điểm danh cho ${reg.userName}`),
         onError: () => toast.error("Điểm danh thất bại. Vui lòng thử lại."),

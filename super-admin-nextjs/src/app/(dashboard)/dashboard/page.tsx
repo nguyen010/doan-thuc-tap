@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Users, Calendar, Activity, ArrowUpRight } from "lucide-react"
-import { ALL_ACTIVITIES, chartData } from "@/lib/mock-data"
+import { chartData } from "@/lib/mock-data"
 import { Button } from "@/components/ui/button"
 import {
   CartesianGrid,
@@ -29,7 +29,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { motion } from "motion/react"
-import { useOverviewStats } from "@/hooks/use-stats-api"
+import { useOverviewStats, useActivities } from "@/hooks/use-stats-api"
 import { useEventsQuery } from "@/hooks/use-events-api"
 
 const CHART_COLORS = ["hsl(var(--primary))", "#10b981", "#f59e0b", "#6366f1", "#ec4899"]
@@ -47,8 +47,9 @@ export default function DashboardPage() {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState(false)
 
-  const { data: stats = { totalUsers: 0, totalEvents: 0, activeEvents: 0, checkInRate: 0 } } = useOverviewStats()
+  const { data: stats = { totalUsers: 0, totalEvents: 0, totalCheckins: 0, checkInRate: 0, totalRegistrations: 0 } } = useOverviewStats()
   const { data: events = [] } = useEventsQuery()
+  const { data: activities = [] } = useActivities(20)
 
   useEffect(() => { setIsMounted(true) }, [])
 
@@ -99,7 +100,7 @@ export default function DashboardPage() {
             <CardContent>
               <div className="flex items-end justify-between">
                 <span className="text-2xl font-bold text-slate-900">{stats.totalEvents}</span>
-                <span className="text-xs text-slate-400 font-medium">Đang có {stats.activeEvents} sự kiện hoạt động</span>
+                <span className="text-xs text-slate-400 font-medium">{stats.totalRegistrations} lượt đăng ký</span>
               </div>
             </CardContent>
           </Card>
@@ -159,7 +160,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {ALL_ACTIVITIES.slice(0, 5).map((activity, i) => (
+                {activities.slice(0, 5).map((activity: { user: string; action: string; time: string; date: string }, i: number) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold shrink-0">
                       {activity.user.split(' ').map((n: string) => n[0]).join('')}
@@ -186,7 +187,7 @@ export default function DashboardPage() {
                   </DialogHeader>
                   <ScrollArea className="h-[400px] pr-4">
                     <div className="space-y-6 pt-4">
-                      {ALL_ACTIVITIES.map((activity, i) => (
+                      {activities.map((activity: { user: string; action: string; time: string; date: string }, i: number) => (
                         <div key={i} className="flex items-start gap-3 relative pb-6 border-l-2 border-muted ml-4 pl-6 last:pb-0 last:border-0 overflow-visible">
                           <div className="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-background border-2 border-primary flex items-center justify-center z-10 shrink-0">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary" />

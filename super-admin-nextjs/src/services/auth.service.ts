@@ -17,6 +17,10 @@ export const authService = {
     const { data } = await apiClient.post('/auth/forgot-password', { email })
     return data
   },
+  resetPassword: async (token: string, newPassword: string) => {
+    const { data } = await apiClient.post('/auth/reset-password', { token, newPassword })
+    return data
+  },
 }
 
 export interface ApiUser {

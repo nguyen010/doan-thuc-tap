@@ -4,10 +4,13 @@ export interface CreateEventPayload {
   title: string
   description: string
   location?: string
-  banner?: string
+  imageUrl?: string
+  bannerUrl?: string
   startDate: string
   endDate: string
   maxParticipants?: number
+  displayCategory?: 'HERO' | 'FEATURED' | 'HIGHLIGHT' | 'NORMAL'
+  eventCategory?: string
 }
 
 export const eventService = {
@@ -47,6 +50,26 @@ export const eventService = {
     const form = new FormData()
     form.append('file', file)
     const { data } = await apiClient.post(`/events/${id}/import`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return data
+  },
+  getImportHistory: async (id: string) => {
+    const { data } = await apiClient.get(`/events/${id}/import-history`)
+    return data
+  },
+  downloadImportTemplate: async () => {
+    const response = await apiClient.get('/events/import-template', { responseType: 'blob' })
+    return response.data
+  },
+  downloadImportEventsTemplate: async () => {
+    const response = await apiClient.get('/events/import-template-events', { responseType: 'blob' })
+    return response.data
+  },
+  bulkImportEvents: async (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    const { data } = await apiClient.post('/events/import', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data

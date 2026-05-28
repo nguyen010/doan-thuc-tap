@@ -5,6 +5,8 @@ export const MOCK_STATS: DashboardStats = {
   totalRegistrations: 1450,
   totalUsers: 3400,
   checkInRate: 78,
+  activeEvents: 4,
+  totalCheckins: 0,
 }
 
 export const MOCK_EVENTS: Event[] = [
